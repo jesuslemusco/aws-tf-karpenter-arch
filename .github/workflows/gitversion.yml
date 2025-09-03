@@ -1,17 +1,20 @@
 name: GitVersion Versioning
 
 on:
-  push:
-    branches:
-      - main
-      - develop
-      - 'release/**'
-      - 'feature/**'
-      - 'hotfix/**'
-  pull_request:
-    branches:
-      - main
-      - develop
+  workflow_dispatch:
+
+
+  # push:
+  #   branches:
+  #     - main
+  #     - develop
+  #     - 'release/**'
+  #     - 'feature/**'
+  #     - 'hotfix/**'
+  # pull_request:
+  #   branches:
+  #     - main
+  #     - develop
 
 jobs:
   calculate-version:
@@ -172,7 +175,7 @@ jobs:
     name: Update Version Badge
     needs: calculate-version
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     steps:
       - name: Checkout
