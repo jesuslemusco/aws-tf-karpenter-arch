@@ -1,0 +1,93 @@
+# Terraform files
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan-*
+crash.log
+crash.*.log
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform/
+.terraform.lock.hcl
+terraform.rc
+.terraformrc
+
+# Version files (auto-generated)
+version.auto.tfvars
+version.json
+
+# AWS credentials
+.aws/
+aws-credentials
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+tmp/
+temp/
+
+# Keys and certificates
+*.pem
+*.key
+*.crt
+*.cer
+*.pfx
+*.p12
+
+# Kubernetes config
+kubeconfig
+.kube/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+ENV/
+env/
+.venv
+
+# Node.js (for any frontend or tooling)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Documentation build
+docs/_build/
+*.pdf
+
+# Archives
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+
+# Helm
+*.tgz
+charts/*.tgz
+requirements.lock
