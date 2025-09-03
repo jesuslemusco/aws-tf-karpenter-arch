@@ -64,7 +64,7 @@ jobs:
           EOF
           
       - name: Upload Version Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: version-info
           path: version.json
@@ -163,7 +163,7 @@ jobs:
             -out=tfplan-${{ needs.calculate-version.outputs.semVer }}
             
       - name: Upload Terraform Plan
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: terraform-plan-${{ needs.calculate-version.outputs.semVer }}
           path: tfplan-${{ needs.calculate-version.outputs.semVer }}
