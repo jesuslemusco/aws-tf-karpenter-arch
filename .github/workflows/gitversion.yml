@@ -187,10 +187,10 @@ jobs:
           # Check if badge exists
           if grep -q "\[!\[Version\]" README.md; then
             # Update existing badge
-            sed -i "s/\[!\[Version\](.*)\]/[![Version](https:\/\/img.shields.io\/badge\/version-${VERSION}-blue.svg)]/" README.md
+            sed -i "s|\[!\[Version\](.*).*\]|[![Version](https://img.shields.io/badge/version-${VERSION}-blue.svg)]|" README.md
           else
             # Add badge at the top of README
-            sed -i "1s/^/[![Version](https:\/\/img.shields.io\/badge\/version-${VERSION}-blue.svg)](https:\/\/github.com\/${{ github.repository }}\/releases\/tag\/v${VERSION})\n\n/" README.md
+            sed -i "1s|^|[![Version](https://img.shields.io/badge/version-${VERSION}-blue.svg)](https://github.com/${{ github.repository }}/releases/tag/v${VERSION})\n\n|" README.md
           fi
           
       - name: Commit Version Badge
