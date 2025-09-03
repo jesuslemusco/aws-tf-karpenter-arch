@@ -1,0 +1,76 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-graviton
+  namespace: default
+  labels:
+    app: nginx-graviton
+    architecture: arm64
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-graviton
+  template:
+    metadata:
+      labels:
+        app: nginx-graviton
+        architecture: arm64
+    spec:
+      # Node selection for ARM64/Graviton architecture
+      nodeSelector:
+        kubernetes.io/arch: arm64
+        karpenter.sh/nodepool: graviton-pool
+      # Tolerate the graviton-pool taint
+      tolerations:
+      - key: graviton-pool
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+      containers:
+      - name: nginx
+        # Note: nginx:latest supports both amd64 and arm64
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+          name: http
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        # Environment variable to identify architecture
+        env:
+        - name: NODE_ARCH
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-graviton
+  namespace: default
+spec:
+  selector:
+    app: nginx-graviton
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+  type: LoadBalancer

@@ -1,0 +1,193 @@
+---
+# This example deploys the same application on both x86 and Graviton instances
+# to compare performance and cost characteristics
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: arch-comparison
+---
+# x86 Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: benchmark-x86
+  namespace: arch-comparison
+  labels:
+    app: benchmark
+    architecture: x86
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: benchmark-x86
+  template:
+    metadata:
+      labels:
+        app: benchmark-x86
+        architecture: x86
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+        karpenter.sh/nodepool: x86-pool
+      tolerations:
+      - key: x86-pool
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+      containers:
+      - name: benchmark
+        image: alpine:latest
+        command:
+        - sh
+        - -c
+        - |
+          apk add --no-cache sysbench
+          echo "Running on x86 architecture"
+          echo "Node: $NODE_NAME"
+          echo "Instance Type: $INSTANCE_TYPE"
+          echo "========================"
+          
+          # CPU benchmark
+          echo "CPU Benchmark:"
+          sysbench cpu --cpu-max-prime=20000 run
+          
+          # Memory benchmark
+          echo "Memory Benchmark:"
+          sysbench memory run
+          
+          # Keep container running
+          sleep infinity
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: INSTANCE_TYPE
+          value: "x86"
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+---
+# Graviton Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: benchmark-graviton
+  namespace: arch-comparison
+  labels:
+    app: benchmark
+    architecture: graviton
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: benchmark-graviton
+  template:
+    metadata:
+      labels:
+        app: benchmark-graviton
+        architecture: graviton
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: arm64
+        karpenter.sh/nodepool: graviton-pool
+      tolerations:
+      - key: graviton-pool
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+      containers:
+      - name: benchmark
+        image: alpine:latest
+        command:
+        - sh
+        - -c
+        - |
+          apk add --no-cache sysbench
+          echo "Running on Graviton (ARM64) architecture"
+          echo "Node: $NODE_NAME"
+          echo "Instance Type: $INSTANCE_TYPE"
+          echo "========================"
+          
+          # CPU benchmark
+          echo "CPU Benchmark:"
+          sysbench cpu --cpu-max-prime=20000 run
+          
+          # Memory benchmark
+          echo "Memory Benchmark:"
+          sysbench memory run
+          
+          # Keep container running
+          sleep infinity
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: INSTANCE_TYPE
+          value: "graviton"
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+---
+# Service to compare both architectures
+apiVersion: v1
+kind: Service
+metadata:
+  name: benchmark-comparison
+  namespace: arch-comparison
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+spec:
+  selector:
+    app: benchmark
+  ports:
+  - port: 80
+    targetPort: 80
+  type: LoadBalancer
+---
+# ConfigMap with comparison script
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: comparison-script
+  namespace: arch-comparison
+data:
+  compare.sh: |
+    #!/bin/bash
+    echo "Architecture Comparison Script"
+    echo "=============================="
+    echo ""
+    
+    echo "Getting x86 pods..."
+    kubectl get pods -n arch-comparison -l architecture=x86 -o wide
+    echo ""
+    
+    echo "Getting Graviton pods..."
+    kubectl get pods -n arch-comparison -l architecture=graviton -o wide
+    echo ""
+    
+    echo "x86 Benchmark Results:"
+    kubectl logs -n arch-comparison -l architecture=x86 --tail=50
+    echo ""
+    
+    echo "Graviton Benchmark Results:"
+    kubectl logs -n arch-comparison -l architecture=graviton --tail=50
+    echo ""
+    
+    echo "Node Information:"
+    kubectl get nodes -L kubernetes.io/arch -L node.kubernetes.io/instance-type -L karpenter.sh/capacity-type
+    echo ""
+    
+    echo "Cost Analysis:"
+    echo "Note: Graviton instances typically cost ~20% less than equivalent x86 instances"
+    echo "Check the AWS console for actual pricing in your region"

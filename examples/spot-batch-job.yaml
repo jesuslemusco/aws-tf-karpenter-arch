@@ -1,0 +1,119 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: spot-batch-job
+  namespace: default
+  labels:
+    app: spot-batch
+    capacity-type: spot
+spec:
+  parallelism: 10
+  completions: 50
+  backoffLimit: 6
+  template:
+    metadata:
+      labels:
+        app: spot-batch
+        capacity-type: spot
+    spec:
+      # Schedule on spot instances only
+      nodeSelector:
+        karpenter.sh/nodepool: spot-pool
+      # Tolerate spot instance taint
+      tolerations:
+      - key: spot
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+      # Tolerate spot instance interruption
+      - key: node.kubernetes.io/unschedulable
+        operator: Exists
+        effect: NoSchedule
+        tolerationSeconds: 300
+      restartPolicy: OnFailure
+      containers:
+      - name: batch-processor
+        image: busybox:latest
+        command:
+        - sh
+        - -c
+        - |
+          echo "Starting batch job on $(hostname)"
+          echo "Architecture: $(uname -m)"
+          echo "Processing task..."
+          # Simulate workload
+          sleep 30
+          echo "Task completed successfully"
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spot-web-app
+  namespace: default
+  labels:
+    app: spot-web
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: spot-web
+  template:
+    metadata:
+      labels:
+        app: spot-web
+        capacity-type: spot
+    spec:
+      # Prefer spot instances
+      nodeSelector:
+        karpenter.sh/nodepool: spot-pool
+      tolerations:
+      - key: spot
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+      # Anti-affinity to spread across nodes
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - spot-web
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: web
+        image: nginxdemos/hello:latest
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spot-web-app
+  namespace: default
+spec:
+  selector:
+    app: spot-web
+  ports:
+  - port: 80
+    targetPort: 80
+  type: LoadBalancer

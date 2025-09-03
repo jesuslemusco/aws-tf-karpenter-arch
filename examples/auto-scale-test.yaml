@@ -1,0 +1,104 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: autoscale-test
+  namespace: default
+  labels:
+    app: autoscale-test
+    purpose: scaling-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: autoscale-test
+  template:
+    metadata:
+      labels:
+        app: autoscale-test
+    spec:
+      # Remove node selector to allow Karpenter to choose optimal instances
+      # Karpenter will automatically provision nodes based on requirements
+      containers:
+      - name: stress
+        image: polinux/stress:latest
+        command: ["stress"]
+        args:
+        - "--vm"
+        - "1"
+        - "--vm-bytes"
+        - "128M"
+        - "--vm-hang"
+        - "1"
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: autoscale-test-hpa
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: autoscale-test
+  minReplicas: 1
+  maxReplicas: 100
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 70
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+      - type: Pods
+        value: 10
+        periodSeconds: 30
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: autoscale-test-script
+  namespace: default
+data:
+  scale-test.sh: |
+    #!/bin/bash
+    echo "Scaling test script for Karpenter demonstration"
+    echo "==========================================="
+    
+    # Scale up to trigger node provisioning
+    echo "Scaling deployment to 50 replicas..."
+    kubectl scale deployment autoscale-test --replicas=50
+    
+    echo "Waiting for pods to be scheduled..."
+    sleep 10
+    
+    # Watch nodes being provisioned
+    echo "Watching nodes (press Ctrl+C to stop):"
+    kubectl get nodes -L karpenter.sh/nodepool -L node.kubernetes.io/instance-type -L karpenter.sh/capacity-type -w
