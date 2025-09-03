@@ -314,7 +314,6 @@ terraform destroy -auto-approve
 
 - [Deployment Checklist](docs/deployment-check-list.md) - Step-by-step guide for production deployments
 - [Troubleshooting Guide](docs/troubleshooting.md) - Common issues and solutions
-- [GitVersion Setup](docs/gitversion-setup.md) - Automated versioning and branching strategy
 
 ## Additional Resources
 
