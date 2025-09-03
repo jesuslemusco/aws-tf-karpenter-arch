@@ -33,3 +33,28 @@ variable "karpenter_version" {
   type        = string
   default     = "1.0.0"
 }
+
+# Version variables from GitVersion
+variable "app_version" {
+  description = "Application version from GitVersion"
+  type        = string
+  default     = "0.1.0"
+}
+
+variable "build_number" {
+  description = "Build number from GitVersion (commits since version source)"
+  type        = string
+  default     = "0"
+}
+
+variable "git_commit" {
+  description = "Git commit short SHA from GitVersion"
+  type        = string
+  default     = ""
+}
+
+variable "git_branch" {
+  description = "Git branch name from GitVersion"
+  type        = string
+  default     = ""
+}
