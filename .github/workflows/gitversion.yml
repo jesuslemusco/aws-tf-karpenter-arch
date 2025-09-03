@@ -122,51 +122,51 @@ jobs:
           draft: false
           prerelease: false
 
-  terraform-versioning:
-    name: Terraform Versioning
-    needs: calculate-version
-    runs-on: ubuntu-latest
+  # terraform-versioning:
+  #   name: Terraform Versioning
+  #   needs: calculate-version
+  #   runs-on: ubuntu-latest
     
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
         
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.13.0
+  #     - name: Setup Terraform
+  #       uses: hashicorp/setup-terraform@v3
+  #       with:
+  #         terraform_version: 1.13.0
           
-      - name: Update Terraform Variables
-        run: |
-          # Create a terraform.tfvars with version info
-          cat > version.auto.tfvars <<EOF
-          # Auto-generated version information
-          app_version     = "${{ needs.calculate-version.outputs.semVer }}"
-          build_number    = "${{ needs.calculate-version.outputs.commitsSinceVersionSource }}"
-          git_commit      = "${{ needs.calculate-version.outputs.shortSha }}"
-          git_branch      = "${{ needs.calculate-version.outputs.branchName }}"
-          EOF
+  #     - name: Update Terraform Variables
+  #       run: |
+  #         # Create a terraform.tfvars with version info
+  #         cat > version.auto.tfvars <<EOF
+  #         # Auto-generated version information
+  #         app_version     = "${{ needs.calculate-version.outputs.semVer }}"
+  #         build_number    = "${{ needs.calculate-version.outputs.commitsSinceVersionSource }}"
+  #         git_commit      = "${{ needs.calculate-version.outputs.shortSha }}"
+  #         git_branch      = "${{ needs.calculate-version.outputs.branchName }}"
+  #         EOF
           
-          echo "Version variables created:"
-          cat version.auto.tfvars
+  #         echo "Version variables created:"
+  #         cat version.auto.tfvars
           
-      - name: Terraform Init
-        run: terraform init
+  #     - name: Terraform Init
+  #       run: terraform init
         
-      - name: Terraform Validate
-        run: terraform validate
+  #     - name: Terraform Validate
+  #       run: terraform validate
         
-      - name: Create Version-Tagged Plan
-        run: |
-          terraform plan \
-            -var="app_version=${{ needs.calculate-version.outputs.semVer }}" \
-            -out=tfplan-${{ needs.calculate-version.outputs.semVer }}
+  #     - name: Create Version-Tagged Plan
+  #       run: |
+  #         terraform plan \
+  #           -var="app_version=${{ needs.calculate-version.outputs.semVer }}" \
+  #           -out=tfplan-${{ needs.calculate-version.outputs.semVer }}
             
-      - name: Upload Terraform Plan
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-plan-${{ needs.calculate-version.outputs.semVer }}
-          path: tfplan-${{ needs.calculate-version.outputs.semVer }}
+  #     - name: Upload Terraform Plan
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: terraform-plan-${{ needs.calculate-version.outputs.semVer }}
+  #         path: tfplan-${{ needs.calculate-version.outputs.semVer }}
 
   update-readme:
     name: Update Version Badge
