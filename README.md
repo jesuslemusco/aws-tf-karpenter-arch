@@ -1,5 +1,3 @@
-[![Version](https://img.shields.io/badge/version-1.0.1-ci.5-blue.svg)](https://github.com/jesuslemusco/aws-tf-karpenter-arch/releases/tag/v1.0.1-ci.5)
-
 # AWS EKS Cluster with Karpenter Autoscaling
 
 This repository contains Terraform code to deploy a production-ready AWS EKS cluster with Karpenter autoscaling, supporting both x86 and ARM64 (Graviton) instances with Spot capacity.

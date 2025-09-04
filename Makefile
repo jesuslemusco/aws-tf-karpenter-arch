@@ -4,7 +4,8 @@
 CLUSTER_NAME ?= eks-karpenter-cluster
 REGION ?= us-west-2
 TERRAFORM := terraform
-KUBECTL := kubectl
+# KUBECTL := kubectl
+KUBECTL := minikube kubectl --
 
 help: ## Show this help message
 	@echo "Usage: make [target]"
