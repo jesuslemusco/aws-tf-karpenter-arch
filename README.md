@@ -4,7 +4,7 @@ This repository contains Terraform code to deploy a production-ready AWS EKS clu
 
 ## Architecture Overview
 
-- **EKS Cluster**: Latest available version (1.31)
+- **EKS Cluster**: Latest available version (1.33)
 - **VPC**: Dedicated VPC with public and private subnets across 2 AZs
 - **Karpenter**: v1.0.0 with node pools for x86 and ARM64 instances
 - **Instance Types**: Mix of On-Demand and Spot instances for cost optimization
