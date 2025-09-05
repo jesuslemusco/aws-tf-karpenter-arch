@@ -91,3 +91,7 @@ docs/_build/
 *.tgz
 charts/*.tgz
 requirements.lock
+
+# Custom
+.claude
+terraform.tfvars
